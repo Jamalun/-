@@ -1,4 +1,4 @@
-####
+####빅데이터 통계학
 setwd("c:/stata") #working directory를 설정한다. 모든 작업을 진행할 폴더 설정.
 aa <- c(1,2,3) # "=" assign  c : concatenate
 aa

@@ -1,7 +1,7 @@
 
 # Lecture Note 6 
 # 2020-11-05
-###############################
+###############################∫Úµ•¿Ã≈Õ
 setwd("c:/stata")
 install.packages("rpart")  
 install.packages("rpart.plot")
