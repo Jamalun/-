@@ -1,0 +1,166 @@
+################################
+# ???ë¶€ ê³„ëŸ‰ê²½ì œ??? 
+# Lecture note 6 and 7 
+# 2020-11-09
+################################
+setwd("c:/stata")
+library(haven)
+gpa2 <- read_dta(file="gpa2.dta")
+reg1 <- lm(colgpa ~ sat +hsperc 
+           + hsize + I(hsize^2), data=gpa2)      # I?? Á¦?????? Ç¥??
+summary(reg1)
+
+# predicted value(fitted value)
+XX1 <- data.frame(sat=1200, hsperc=30, hsize=5)
+predict(reg1, newdata=XX1)
+
+XX2 <-data.frame(sat=c(1200,900,1400), 
+                 hsperc=c(30,20,5), hsize=c(5,3,1))
+
+predict(reg1, newdata=XX2)
+
+
+XX3 <-data.frame(sat=c(1200,900,1400), 
+                 hsperc=c(30), hsize=c(5))
+
+predict(reg1, newdata=XX3)
+
+XX4 <-data.frame(sat=c(1200,900,1400), 
+                 hsperc=c(30,20,5), hsize=c(5))
+
+predict(reg1, newdata=XX4)
+
+# error message
+#XX5 <-data.frame(sat=c(1200,900,1400),         #?È°??? ?????Öµ??? ?Ñ°??? ???Ö±? !
+#                 hsperc=c(30,20), hsize=c(5))
+
+#predict(reg1, newdata=XX5)
+
+hprice2 <-read_dta(file="hprice2.dta")
+reg2 <- lm(log(price) ~ log(nox)+ log(dist)
+           + rooms + I(rooms^2)+stratio, data=hprice2 )
+
+summary(reg2)
+
+# x axis : rooms 
+nox_mean <- mean(hprice2$nox)
+dist_mean <-mean(hprice2$dist)
+stratio_mean <-mean(hprice2$stratio)
+
+XX6 <-data.frame(rooms=seq(from=1, to=5, by=1), 
+                 nox=nox_mean, 
+                 dist=dist_mean, stratio=stratio_mean) 
+yhat <- predict(reg2, XX6)
+yhat
+
+plot(yhat ~ XX6$rooms, type="l", lty=1)   #tyqe = "l" Àº ????À¸?? ?Ø¶?. lty = 1Àº ?Ç¼?À¸?? ?Ø¶? 
+
+###############################################
+# Back to gpa2 
+
+reg1 <- lm(colgpa ~ sat +hsperc 
+           + hsize + I(hsize^2), data=gpa2)
+summary(reg1)
+
+# sat=(1000 ~ 1600, by=100)            #?Ì°? ?????? ?Ñ¹? ?ØºÁ¶? ????
+# Draw a fitted plot of colgpa over 
+# a given set of sat fixing other variables mean. 
+# y axis : the fitted value of colgpa 
+# x axis : sat 
+
+hsperc_m <-mean(gpa2$hsperc)
+hsize_m <-mean(gpa2$hsize)
+
+XX7 <-data.frame(sat=seq(from=1000, to=1600, by=100),
+                 hsperc=hsperc_m, hsize=hsize_m)
+
+yhat1<- predict(reg1, newdata=XX7)
+plot(yhat1 ~ XX7$sat, type="l", lty=1)
+
+###############################################
+# Lecture Note 7 
+wage1 <-read_dta(file="wage1.dta")
+# female : 1, male:0 
+reg5 <- lm(log(wage)~ educ + exper + female , data=wage1)
+table(wage1$female)  #female?? male?? ?? ???? 1?? female
+class(wage1$female)  #numeric ???À³? ! ??????À¸?? ?Ù²???.  
+wage1$female <- as.factor(wage1$female) #factor?? ??????À¸?? ?Ù²??? ????
+
+reg5 <- lm(log(wage)~ educ + exper + female , data=wage1)
+summary(reg5)
+
+install.packages("AER")         #??Á¦ ?????Í¸? ?????À´? ?Û¾?
+library(AER)
+# CPS1985 
+data(CPS1985) #?Ì·??? ?????? ?Î¸? ????
+
+# gender: binary category
+table(CPS1985$gender)  # character    #???? ???????Ì³? 0?? 1??Ç¥?â°¡ ?ÈµÇ³?
+CPS1985$gender1 <- as.factor(CPS1985$gender) 
+
+# base category: 0(male)
+reg6 <- lm(log(wage)~ experience + gender1 
+           + education , data=CPS1985)
+summary(reg6)
+
+# how to change base category from 0 to 1 
+# female : 1 male: 0
+CPS1985$gender1 <-relevel(CPS1985$gender1, "female")  # ?Ì°?Á¤À» ???? female : 0 male : 1 ?? ?Ç¹???
+reg7 <- lm(log(wage)~ experience + gender1 
+           + education , data=CPS1985)
+summary(reg7)
+
+# Multiple Categorical variable 
+# occupation : ?????? Á¾??
+table(CPS1985$occupation)  # 6???? ???Ö¸? ?????? ?Ö´?. 
+
+# We need to create at least 5 dummy variables 
+# occupation : Char
+CPS1985$occupation1 <- as.factor(CPS1985$occupation)
+
+reg8 <- lm(log(wage)~ experience + gender1 
+           + education+ occupation1 , data=CPS1985)
+summary(reg8)       #worker?? ??Á³À¸?? worker?? base category?? ex. management ?×·?Àº worker ?×·ìº¸?? 0.15 ??Å­ ?Ó±??? ????. 
+
+# worker: base category 
+# how to change the base group : current base group: worker
+
+table(CPS1985$occupation1)    
+CPS1985$occupation1 <- relevel(CPS1985$occupation1,"management")  # sales : base category 
+
+reg9 <- lm(log(wage)~ experience + gender1 
+           + education+ occupation1 , data=CPS1985)
+summary(reg9)
+
+str(CPS1985$occupation1)
+
+##############################################
+# Breaking a numeric variable into a multiple categorical variable 
+lawsch85 <-read_dta(file="lawsch85.dta")
+summary(lawsch85$rank)
+cut_pt <- c(0, 10 , 25, 40, 60, 100, 175)  # 6?? ????
+lawsch85$rank_cat <- cut(lawsch85$rank, cut_pt)
+table(lawsch85$rank_cat)  
+str(lawsch85$rank_cat)  # ?Ì¹? factor variable?? ??È¯????À½ !À» È®???Ï´? ?Û¾?
+
+reg10 <- lm(log(salary)~ LSAT +rank_cat , data=lawsch85 )
+summary(reg10)
+
+# rank: 0-50, 50-100, 100-175 :rank_cat1          #?????Ø¹?
+# y: log(salary), x1: LSAT, x2: rank_cat1 
+
+######################################################
+library(AER)
+# CPS1985 
+data(CPS1985)
+
+# 6??? ë²”ì£¼??? ê°€??? multiple categorical variable 
+CPS1985$occupation1 <- as.factor(CPS1985$occupation)
+reg11 <- lm(log(wage)~ experience + occupation1, data=CPS1985)
+summary(reg11)  # worker : base category 
+
+# base category: management
+CPS1985$occupation1<- relevel(CPS1985$occupation1, "management") # ?? management ???? ???Ö¸? ?Ç³? !, ??È£?? ???? ?Ë±? ???Á¿??Ï±? !
+reg12 <- lm(log(wage)~ experience + occupation1, data=CPS1985)
+summary(reg12)  # ,management : base category 
+

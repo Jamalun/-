@@ -1,0 +1,90 @@
+##############################
+# 학부계량경제학 
+# Lecture note 7 and 8 
+# 2020-11-16
+#############################
+setwd("c:/stata")
+library(haven)
+gpa3 <-read_dta(file="gpa3.dta")
+
+# intercept dummy : d=female 
+str(gpa3$female)
+gpa3$female <-as.factor(gpa3$female)
+str(gpa3$female)
+
+reg1 <-lm(cumgpa ~ female+sat+hsperc+tothrs, data=gpa3
+          ,subset=(spring==1))
+summary(reg1)
+
+# slope dummy and intercept dummy 
+reg2 <-lm(cumgpa ~ female+sat+sat:female+hsperc+tothrs, data=gpa3
+          ,subset=(spring==1))
+summary(reg2)
+
+reg3 <-lm(cumgpa ~ female*sat+hsperc+tothrs, data=gpa3
+          ,subset=(spring==1))
+summary(reg3)
+
+reg4 <-lm(cumgpa ~ female*(sat+hsperc+tothrs), data=gpa3
+          ,subset=(spring==1))
+summary(reg4)
+
+library(ggiraph)
+library(ggiraphExtra)
+library(ggplot2)
+library(plyr)
+
+reg5 <-lm(cumgpa ~ female*sat,data=gpa3 )
+ggPredict(reg5, se=F, interactive=T)
+
+# Python vs. R 
+
+library(car)
+reg6 <-lm(cumgpa~ female+sat+female:sat, data=gpa3)
+summary(reg6)
+
+# H0: female1 coef=0 and female1:sat coef=0 
+myH0 <- c("female1","female1:sat")
+linearHypothesis(reg6, myH0)
+
+reg7 <-lm(cumgpa~ female*(sat+hsperc+tothrs), data=gpa3)
+summary(reg7)
+
+# H0: female1 coef=0 and female1:sat coef=0 
+myH0 <- c("female1","female1:sat"
+          ,"female1:hsperc","female1:tothrs")
+linearHypothesis(reg7, myH0)
+
+# Chow test 
+# SSR_R, SSR_female, SSR_male 
+# 1) SSR_R 
+reg8 <-lm(cumgpa ~ sat + hsperc + tothrs, data=gpa3)
+summary(reg8)
+str(summary(reg8))
+SSR_R <- 0.8671^2*728
+SSR_R 
+
+# 2) SSR_female
+reg9 <-lm(cumgpa ~ sat + hsperc + tothrs, data=gpa3, 
+          subset=(female==1))
+summary(reg9)
+
+SSR_F <- 0.9036^2*176
+SSR_F 
+
+# 3) SSR_male 
+reg10 <-lm(cumgpa ~ sat + hsperc + tothrs, data=gpa3, 
+           subset=(female==0))
+summary(reg10)
+
+SSR_M <- 0.8443^2*548
+SSR_M 
+
+# Chow test : F statistic 
+F1<- (SSR_R - (SSR_F+SSR_M))/ 4
+F2<- (SSR_R)/(732-2*4)
+F <- F1/F2
+F
+
+# subset=(x>900)
+# subset=(x>900 & female==1)
